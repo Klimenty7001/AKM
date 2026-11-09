@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>AKM LEGENDS — дневник тренировок</title>
+<meta name="description" content="AKM LEGENDS — офлайн-дневник тренировок со свободным конструктором программ: любые дни и упражнения, Myo-Reps, контроль объёма. Минималистичный дизайн, работает без интернета.">
+<meta name="theme-color" id="metaTheme" content="#F6F6F4">
+<link rel="manifest" href="./manifest.json">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2064%2064'%3E%3Crect%20width='64'%20height='64'%20rx='16'%20fill='%2317161A'/%3E%3Crect%20x='10'%20y='30'%20width='11'%20height='22'%20rx='5.5'%20fill='%23F4F2EC'/%3E%3Crect%20x='26.5'%20y='14'%20width='11'%20height='38'%20rx='5.5'%20fill='%236366F1'/%3E%3Crect%20x='43'%20y='22'%20width='11'%20height='30'%20rx='5.5'%20fill='%23F4F2EC'/%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="./apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="AKM LEGENDS">
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+
+<header class="app-header">
+  <div class="brand">
+    <svg class="logo" viewBox="0 0 64 64" aria-hidden="true">
+      <rect class="logo-bar" x="10" y="30" width="11" height="22" rx="5.5"></rect>
+      <rect class="logo-bar logo-bar-accent" x="26.5" y="14" width="11" height="38" rx="5.5"></rect>
+      <rect class="logo-bar" x="43" y="22" width="11" height="30" rx="5.5"></rect>
+    </svg>
+    <div class="brand-text">
+      <span class="brand-name">AKM</span>
+      <span class="brand-sub">LEGENDS</span>
+    </div>
+  </div>
+  <button id="syncChip" class="sync-chip" type="button">
+    <span class="dot"></span><span id="syncText">Проверка…</span>
+  </button>
+</header>
+
+<main>
+
+  <!-- ==================== ТРЕНИРОВКА ==================== -->
+  <section id="tab-workout" class="tab-panel">
+    <div class="screen-head">
+      <h1>Тренировка</h1>
+      <p id="scheduleHint" class="screen-sub"></p>
+    </div>
+
+    <div id="recoveryNote" class="note">
+      <strong>Этап восстановления.</strong>
+      Стартуем с нижней границы объёма и запасом RIR 1.5–2.5. Первые 4–6 недель бережём сухожилия: без отказных подходов.
+      <button id="bannerClose" class="note-x" type="button" aria-label="Скрыть">×</button>
+    </div>
+
+    <div id="dayChips" class="day-chips" role="group" aria-label="Выбор тренировочного дня"></div>
+
+    <div id="sessionArea"></div>
+
+    <button id="addExBtn" class="btn btn-dashed btn-block" type="button" hidden>+ Добавить упражнение</button>
+
+    <textarea id="sessionComment" class="comment" rows="2"
+      placeholder="Заметка: самочувствие, боли, настройки тренажёров…" hidden></textarea>
+
+    <button id="finishBtn" class="btn btn-primary btn-block" type="button" hidden>Завершить тренировку</button>
+  </section>
+
+  <!-- ==================== ПРОГРАММА (КОНСТРУКТОР) ==================== -->
+  <section id="tab-program" class="tab-panel" hidden>
+    <div class="screen-head">
+      <h1>Программа</h1>
+      <p class="screen-sub">Свободный конструктор: без шаблонов и ограничений</p>
+    </div>
+
+    <p class="hint prog-hint">
+      Создавай сколько угодно тренировочных дней с любыми названиями, добавляй свои упражнения:
+      название, описание, подходы, повторения и рабочий вес. Описание видно прямо во время
+      тренировки. Порядок и состав меняются в любой момент — даже посреди занятия.
+    </p>
+
+    <div id="programList"></div>
+
+    <button id="addDayBtn" class="btn btn-primary btn-block" type="button">+ Новый тренировочный день</button>
+  </section>
+
+  <!-- ==================== ОБЪЁМ ==================== -->
+  <section id="tab-volume" class="tab-panel" hidden>
+    <div class="screen-head">
+      <h1>Объём</h1>
+      <p class="screen-sub">Факт за неделю vs. запланированные подходы</p>
+    </div>
+
+    <div class="card vol-total">
+      <div class="vol-total-main">
+        <span class="vol-total-label">Подходов за неделю</span>
+        <strong id="volTotal">0</strong>
+        <span id="volPlanTotal" class="vol-plan-total">план: —</span>
+      </div>
+      <div class="week-nav">
+        <button id="volPrev" class="icon-btn" type="button" aria-label="Прошлая неделя">←</button>
+        <span id="volLabel" class="week-label"></span>
+        <button id="volNext" class="icon-btn" type="button" aria-label="Следующая неделя">→</button>
+      </div>
+    </div>
+
+    <div class="card" id="volList"></div>
+
+    <p class="hint">
+      Счёт с понедельника. Серия Myo-Reps = 1.5 подхода. Зелёная зона — ориентир восстановительного
+      этапа. «План» считается по текущей программе: подходы каждого упражнения идут в группы мышц,
+      назначенные ему в конструкторе. Если план выше зоны — программа, вероятно, перегружает
+      эту группу. Упражнения без группы считаются отдельно.
+    </p>
+  </section>
+
+  <!-- ==================== ИСТОРИЯ ==================== -->
+  <section id="tab-history" class="tab-panel" hidden>
+    <div class="screen-head">
+      <h1>История</h1>
+      <p class="screen-sub">Все прошедшие тренировки</p>
+    </div>
+    <div id="historyList"></div>
+  </section>
+
+  <!-- ==================== НАСТРОЙКИ ==================== -->
+  <section id="tab-settings" class="tab-panel" hidden>
+    <div class="screen-head">
+      <h1>Настройки</h1>
+      <p class="screen-sub">Подстрой приложение под себя</p>
+    </div>
+
+    <div class="card">
+      <h3>Внешний вид</h3>
+      <div class="cfg-row"><span>Тёмная тема</span>
+        <label class="switch"><input id="themeToggle" type="checkbox"><span class="slider"></span></label></div>
+      <div class="accent-block">
+        <div class="cfg-row"><span>Акцентный цвет</span><span id="accentName" class="accent-name"></span></div>
+        <div id="accentGrid" class="accent-grid"></div>
+        <p class="hint">Акцент красит кнопки, навигацию, прогресс — и среднюю полосу логотипа.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Отдых между подходами</h3>
+      <div class="cfg-row"><span>Базовые (жимы, тяги)</span>
+        <span class="cfg-input"><input id="restCompound" class="cfg-num" type="number" min="30" max="600" step="10"><span>сек</span></span></div>
+      <div class="cfg-row"><span>Изоляция (махи, сгибания)</span>
+        <span class="cfg-input"><input id="restIsolation" class="cfg-num" type="number" min="15" max="600" step="5"><span>сек</span></span></div>
+      <div class="cfg-row"><span>Мини-серии Myo-Reps</span>
+        <span class="cfg-input"><input id="restMyo" class="cfg-num" type="number" min="10" max="90" step="5"><span>сек</span></span></div>
+      <div class="cfg-row"><span>После упражнения</span>
+        <span class="cfg-input"><input id="restLong" class="cfg-num" type="number" min="30" max="900" step="10"><span>сек</span></span></div>
+    </div>
+
+    <div class="card">
+      <h3>Профиль</h3>
+      <ul class="profile-list">
+        <li>19 лет · 80 кг · 170 см</li>
+        <li>Стаж 3 года · пауза 8 месяцев → <strong>восстановление</strong></li>
+        <li>Старые 1ПМ: жим 125 · становая 160 · присед 130 кг</li>
+      </ul>
+      <p class="hint">Становая и присед исключены по медицинским показаниям. Прогрессия:
+      2 тренировки подряд на верхней границе диапазона при RIR ≥ 2 → +2,5 кг.
+      Отказ (RIR 0) или незакрытый объём — вес остаётся прежним.</p>
+    </div>
+
+    <div class="card support">
+      <h3>Поддержи нас</h3>
+      <div class="creators">
+        <div class="creator">
+          <div class="avatar">
+            <img class="avatar-img" data-photo="akm1.png" alt="Создатель AKM LEGENDS — А" hidden>
+            <span class="avatar-fallback">А</span>
+          </div>
+          <span class="creator-name">А</span>
+        </div>
+        <div class="creator">
+          <div class="avatar">
+            <img class="avatar-img" data-photo="akm2.png" alt="Создатель AKM LEGENDS — К" hidden>
+            <span class="avatar-fallback">К</span>
+          </div>
+          <span class="creator-name">К</span>
+        </div>
+        <div class="creator">
+          <div class="avatar">
+            <img class="avatar-img" data-photo="akm3.png" alt="Создатель AKM LEGENDS — М" hidden>
+            <span class="avatar-fallback">М</span>
+          </div>
+          <span class="creator-name">М</span>
+        </div>
+      </div>
+      <p class="hint">AKM — первые буквы наших имён. Лучшая поддержка — тренироваться по плану,
+      не пропускать дни и рассказать о приложении тем, кому оно пригодится.</p>
+      <button id="shareBtn" class="btn btn-ghost btn-block" type="button">Поделиться приложением</button>
+      <p class="hint">Фото создателей: положи <strong>akm1.png</strong>, <strong>akm2.png</strong>
+      и <strong>akm3.png</strong> в корень репозитория — они появятся здесь автоматически.</p>
+    </div>
+
+    <div class="card">
+      <h3>Данные</h3>
+      <div class="btn-col">
+        <button id="exportBtn" class="btn btn-ghost" type="button">Экспорт (JSON-бэкап)</button>
+        <button id="importBtn" class="btn btn-ghost" type="button">Импорт из файла</button>
+        <input id="importInput" type="file" accept=".json,application/json" hidden>
+        <button id="syncBtn" class="btn btn-ghost" type="button">Синхронизировать сейчас</button>
+      </div>
+      <p id="lastSyncLabel" class="hint"></p>
+      <p class="hint">Облако — демо-режим: данные никуда не уходят и остаются на устройстве.
+      В JSON-бэкап входит всё: программа, тренировки, настройки и прогрессия.</p>
+    </div>
+
+    <div class="card">
+      <h3>Приложение</h3>
+      <button id="installBtn" class="btn btn-primary btn-block" type="button" hidden>Установить как приложение</button>
+      <p class="hint">
+        iPhone/iPad (Safari): «Поделиться» → «На экран Домой».<br>
+        Android (Chrome): меню ⋮ → «Установить приложение».<br>
+        Windows (Edge): меню → «Приложения» → «Установить этот сайт как приложение».
+      </p>
+    </div>
+
+    <div class="card medical">
+      <h3>Медицинские ограничения</h3>
+      <p class="hint">Левая нога — киста таранной кости. Жёсткий фильтр зашит в код и не отключается:
+      приседы, выпады, становые тяги, болгарские, зашагивания, вертикальный/45° жим ногами,
+      прыжки, бег и подъёмы на носок нельзя добавить ни в конструкторе, ни через импорт —
+      они блокируются автоматически. На ногах разрешены только разгибания ног, сгибания ног,
+      горизонтальный жим ногами (стопы высоко, ограниченная амплитуда) и гиперэкстензия без
+      веса — если упражнение для ног вне этого списка, конструктор покажет предупреждение.</p>
+    </div>
+  </section>
+</main>
+
+<!-- ==================== НИЖНЯЯ НАВИГАЦИЯ ==================== -->
+<nav class="bottom-nav" aria-label="Разделы">
+  <button class="nav-btn is-active" data-tab="workout" type="button">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 7.5v9M17.5 7.5v9M3.5 9.5v5M20.5 9.5v5M6.5 12h11"/></svg>
+    <span>Тренировка</span>
+  </button>
+  <button class="nav-btn" data-tab="program" type="button">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4.5" width="14" height="16" rx="3"/><path d="M9 3h6v3H9zM9 11.5h6M9 15.5h4"/></svg>
+    <span>Программа</span>
+  </button>
+  <button class="nav-btn" data-tab="volume" type="button">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20v-8M12 20V5M19 20v-5"/></svg>
+    <span>Объём</span>
+  </button>
+  <button class="nav-btn" data-tab="history" type="button">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>
+    <span>История</span>
+  </button>
+  <button class="nav-btn" data-tab="settings" type="button">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h8.5M17.5 8H20M4 16h3.5M12.5 16H20"/><circle cx="15" cy="8" r="2.2"/><circle cx="10" cy="16" r="2.2"/></svg>
+    <span>Настройки</span>
+  </button>
+</nav>
+
+<!-- ==================== МОДАЛКА УПРАЖНЕНИЯ ==================== -->
+<div id="exModal" class="modal" hidden>
+  <div class="modal-backdrop" data-close="1"></div>
+  <div class="modal-sheet" role="dialog" aria-modal="true" aria-labelledby="exModalTitle">
+    <div class="modal-grip" aria-hidden="true"></div>
+    <div class="modal-head">
+      <h2 id="exModalTitle">Новое упражнение</h2>
+      <button class="modal-x" type="button" data-close="1" aria-label="Закрыть">×</button>
+    </div>
+
+    <label class="f-label" for="fName">Название</label>
+    <input id="fName" class="f-input" type="text" maxlength="120"
+      placeholder="Например: Жим гантелей лёжа" autocomplete="off">
+
+    <label class="f-label" for="fDesc">Описание <span class="f-opt">— видно во время тренировки</span></label>
+    <textarea id="fDesc" class="f-input" rows="2" maxlength="400"
+      placeholder="Техника, настройки тренажёра, чем заменить…"></textarea>
+
+    <div class="f-grid">
+      <div>
+        <span class="f-label" id="fSetsLabel">Подходы</span>
+        <div class="stepper" id="fSetsStep">
+          <button type="button" data-step="sets|-1" aria-label="Меньше подходов">−</button>
+          <span id="fSetsVal">3</span>
+          <button type="button" data-step="sets|1" aria-label="Больше подходов">+</button>
+        </div>
+      </div>
+      <div>
+        <label class="f-label" for="fReps">Повторения</label>
+        <input id="fReps" class="f-input f-c" type="text" maxlength="9" placeholder="8–12" autocomplete="off">
+      </div>
+      <div>
+        <label class="f-label" for="fWeight">Вес, кг</label>
+        <input id="fWeight" class="f-input f-c" type="number" inputmode="decimal" step="0.5" min="0" placeholder="—">
+      </div>
+    </div>
+
+    <div class="f-row2">
+      <div>
+        <label class="f-label" for="fKind">Отдых между подходами</label>
+        <select id="fKind" class="f-input">
+          <option value="isolation">Изоляция</option>
+          <option value="compound">Базовое упражнение</option>
+        </select>
+      </div>
+      <div class="f-switch">
+        <span class="f-label">Myo-Reps</span>
+        <label class="switch"><input id="fMyo" type="checkbox"><span class="slider"></span></label>
+      </div>
+    </div>
+
+    <div id="fMinisWrap" hidden>
+      <span class="f-label">Мини-серий после активации</span>
+      <div class="stepper" id="fMinisStep">
+        <button type="button" data-step="minis|-1" aria-label="Меньше мини-серий">−</button>
+        <span id="fMinisVal">4</span>
+        <button type="button" data-step="minis|1" aria-label="Больше мини-серий">+</button>
+      </div>
+    </div>
+
+    <span class="f-label">Группы мышц <span class="f-opt">— для подсчёта объёма</span></span>
+    <div id="fMuscles" class="muscle-chips"></div>
+
+    <label class="f-check" id="fAddWrap" hidden>
+      <input id="fAddToProgram" type="checkbox" checked>
+      <span>Добавить также в программу этого дня</span>
+    </label>
+
+    <p id="fErr" class="f-err" hidden></p>
+    <p id="fWarn" class="f-warn" hidden></p>
+
+    <div class="modal-actions">
+      <button id="fDelete" class="btn btn-ghost btn-danger" type="button" hidden>Удалить</button>
+      <button id="fSave" class="btn btn-primary" type="button">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== ТАЙМЕР ОТДЫХА ==================== -->
+<div id="timerBar" class="timer-bar" hidden>
+  <div class="timer-top">
+    <div class="timer-info">
+      <strong id="timerTime">0:00</strong>
+      <span id="timerLabel">Отдых</span>
+    </div>
+    <div class="timer-actions">
+      <button id="timerAdd" type="button">+30 с</button>
+      <button id="timerSkip" type="button">Пропустить</button>
+    </div>
+  </div>
+  <div class="timer-progress"><div id="timerFill"></div></div>
+</div>
+
+<div id="toast" class="toast" hidden></div>
+
+<script src="./app.js" defer></script>
+</body>
+</html>
